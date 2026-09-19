@@ -33,7 +33,7 @@ func newLintCmd() *cobra.Command {
   helm schema lint --strict`,
 		Args:          cobra.NoArgs,
 		SilenceErrors: true,
-		SilenceUsage:  false,
+		SilenceUsage:  true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config, err := LoadConfig(cmd)
 			if err != nil {
@@ -41,12 +41,12 @@ func newLintCmd() *cobra.Command {
 			}
 			return Lint(cmd.Context(), config, LintOptions{
 				Strict:     strict,
-				ConfigPath: ".schema.yaml",
+				ConfigPath: cmd.Flag("config").Value.String(),
 			})
 		},
 	}
 
-	cmd.Flags().BoolVar(&strict, "strict", true, "Fail with a non-zero exit code when any warning is reported")
+	cmd.Flags().BoolVar(&strict, "strict", false, "Fail with a non-zero exit code when any warning is reported")
 
 	return cmd
 }
