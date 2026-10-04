@@ -130,7 +130,7 @@ func (h *HTTPFileCache) LoadCache(req *http.Request) (CachedResponse, error) {
 
 func (h *HTTPFileCache) SaveCache(req *http.Request, resp *http.Response, body []byte) (CachedResponse, error) {
 	maxAge := getCacheControlMaxAge(resp.Header.Get("Cache-Control"))
-	if maxAge < 0 {
+	if maxAge <= 0 {
 		// Response doesn't want to be cached.
 		return CachedResponse{}, nil
 	}
@@ -138,7 +138,7 @@ func (h *HTTPFileCache) SaveCache(req *http.Request, resp *http.Response, body [
 	maxAge = applyMinCacheDuration(maxAge, h.MinCacheDuration)
 	cached := CachedResponse{
 		Data:     body,
-		CachedAt: h.now(),
+		CachedAt: h.now().UTC(),
 		MaxAge:   maxAge,
 		ETag:     resp.Header.Get("ETag"),
 	}
@@ -156,7 +156,7 @@ func (h *HTTPFileCache) SaveCache(req *http.Request, resp *http.Response, body [
 	gzipWriter := gzip.NewWriter(file)
 	defer closeIgnoreError(gzipWriter)
 	cborEncoder := cbor.NewEncoder(gzipWriter)
-	return cached, cborEncoder.Encode(body)
+	return cached, cborEncoder.Encode(cached)
 }
 
 func getCacheControlMaxAge(header string) time.Duration {
