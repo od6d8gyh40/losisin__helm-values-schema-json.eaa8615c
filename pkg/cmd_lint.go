@@ -101,6 +101,9 @@ func lintConfigUnknownFields(configPath string) ([]string, error) {
 
 	content, err := os.ReadFile(filepath.Clean(configPath))
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("read config file %q: %w", configPath, err)
 	}
 
@@ -111,13 +114,13 @@ func lintConfigUnknownFields(configPath string) ([]string, error) {
 	switch err := decoder.Decode(&config); {
 	case err == nil:
 		return nil, nil
-	case errors.Is(err, io.ErrUnexpectedEOF):
+	case errors.Is(err, io.EOF):
 		// Empty config file: no fields, so no unknown fields.
 		return nil, nil
 	default:
 		// KnownFields(true) reports both unknown fields and type mismatches as a
-		// *yaml.TypeError. A type mismatch means the config is invalid, so
-		// surface it as a hard error.
+		// *yaml.TypeError. Only unknown fields are lint warnings; a type mismatch
+		// means the config is invalid, so surface it as a hard error.
 		var typeErr *yaml.TypeError
 		if errors.As(err, &typeErr) {
 			var warnings, invalid []string
@@ -131,7 +134,7 @@ func lintConfigUnknownFields(configPath string) ([]string, error) {
 			if len(invalid) > 0 {
 				return nil, fmt.Errorf("parse config file %q: %s", configPath, strings.Join(invalid, "; "))
 			}
-			return nil, nil
+			return warnings, nil
 		}
 		// Any other error means the config YAML itself is malformed.
 		return nil, fmt.Errorf("parse config file %q: %w", configPath, err)
