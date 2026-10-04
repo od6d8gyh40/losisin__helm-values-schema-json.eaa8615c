@@ -221,7 +221,7 @@ func urlToCachePath(u *url.URL) string {
 	}
 	segments := []string{}
 	segments = append(segments, cmp.Or(u.Scheme, "no-scheme"))
-	segments = append(segments, cmp.Or(u.Host, "no-host"))
+	segments = append(segments, cmp.Or(u.Hostname(), "no-host"))
 	if port := u.Port(); port != "" {
 		segments = append(segments, port)
 	}
@@ -231,19 +231,19 @@ func urlToCachePath(u *url.URL) string {
 		for i, seg := range pathSegments {
 			switch seg {
 			case ".":
-				pathSegments[i] = "_up"
-			case "..":
 				pathSegments[i] = "_dot"
+			case "..":
+				pathSegments[i] = "_up"
 			default:
 				if _, err := filepath.Localize(seg); err != nil {
 					// convert any invalid path segments into base32
-					pathSegments[i] = base32.StdEncoding.WithPadding(base32.StdPadding).EncodeToString([]byte(seg))
+					pathSegments[i] = base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString([]byte(seg))
 				}
 			}
 		}
 		urlPath = filepath.Clean(filepath.Join(pathSegments...))
 	}
-	segments = append(segments, cmp.Or(urlPath, "_root"))
+	segments = append(segments, cmp.Or(urlPath, "_index"))
 	return filepath.Join(segments...)
 }
 
