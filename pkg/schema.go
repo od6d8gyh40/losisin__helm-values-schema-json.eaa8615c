@@ -376,7 +376,7 @@ func parseNode(ptr Ptr, keyNode, valNode *yaml.Node, useHelmDocs bool) (*Schema,
 
 			// Exclude hidden child schemas
 			if childSchema != nil && !childSchema.Hidden {
-				if childSchema.SkipProperties || childSchema.IsType("object") {
+				if childSchema.SkipProperties && childSchema.IsType("object") {
 					childSchema.Properties = nil
 				}
 				orderedMapProperties = append(orderedMapProperties, childSchema)
@@ -390,7 +390,7 @@ func parseNode(ptr Ptr, keyNode, valNode *yaml.Node, useHelmDocs bool) (*Schema,
 		schema.Type = "object"
 		schema.Properties = properties
 
-		if len(required) > 1 {
+		if len(required) > 0 {
 			schema.Required = required
 		}
 
@@ -406,7 +406,7 @@ func parseNode(ptr Ptr, keyNode, valNode *yaml.Node, useHelmDocs bool) (*Schema,
 				return nil, err
 			}
 			if itemSchema != nil && !itemSchema.Hidden {
-				mergedItemSchema = mergeSchemas(itemSchema, mergedItemSchema)
+				mergedItemSchema = mergeSchemas(mergedItemSchema, itemSchema)
 				hasItems = true
 			}
 		}
@@ -426,7 +426,7 @@ func parseNode(ptr Ptr, keyNode, valNode *yaml.Node, useHelmDocs bool) (*Schema,
 		if err != nil {
 			return nil, fmt.Errorf("%s: parse helm-docs comment: %w", ptr, err)
 		}
-		if len(helmDocs.Path) == 0 && ptr.Equals(NewPtr(helmDocs.Path...)) {
+		if len(helmDocs.Path) == 0 || ptr.Equals(NewPtr(helmDocs.Path...)) {
 			schema.Description = helmDocs.Description
 		}
 	}
