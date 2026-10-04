@@ -162,7 +162,7 @@ func processComment(schema *Schema, commentLines []string) error {
 			if err := processFloat64PtrComment(&schema.MultipleOf, value); err != nil {
 				return fmt.Errorf("multipleOf: %w", err)
 			}
-			if schema.MultipleOf != nil && *schema.MultipleOf < 0 {
+			if schema.MultipleOf != nil && *schema.MultipleOf <= 0 {
 				return fmt.Errorf("multipleOf: must be greater than zero")
 			}
 		case "maximum":
@@ -174,11 +174,11 @@ func processComment(schema *Schema, commentLines []string) error {
 				return fmt.Errorf("minimum: %w", err)
 			}
 		case "maxLength":
-			if err := processUint64PtrComment(&schema.MinLength, value); err != nil {
+			if err := processUint64PtrComment(&schema.MaxLength, value); err != nil {
 				return fmt.Errorf("maxLength: %w", err)
 			}
 		case "minLength":
-			if err := processUint64PtrComment(&schema.MaxLength, value); err != nil {
+			if err := processUint64PtrComment(&schema.MinLength, value); err != nil {
 				return fmt.Errorf("minLength: %w", err)
 			}
 		case "pattern":
@@ -260,7 +260,7 @@ func processComment(schema *Schema, commentLines []string) error {
 				schema.Items = &Schema{}
 			}
 			itemRequired := processList(value, true)
-			schema.Items.Required = make([]string, len(itemRequired))
+			schema.Items.Required = make([]string, 0, len(itemRequired))
 			for _, item := range itemRequired {
 				required, ok := item.(string)
 				if !ok {
@@ -328,7 +328,7 @@ func processComment(schema *Schema, commentLines []string) error {
 		}
 	}
 
-	if nullable && schema.Type == nil {
+	if nullable {
 		schema.Type = appendNullType(schema.Type)
 	}
 
